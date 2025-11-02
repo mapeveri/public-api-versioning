@@ -4,28 +4,22 @@ class Api::V1::UsersController < ApplicationController
   # GET /api/v1/users
   def index
     users = User.all
-    version = ApiVersion.from_request(request)
     serialized = ActiveModelSerializers::SerializableResource.new(users).as_json
-    transformed = serialized.map { |u| ApiTransformations::UserTransformations.transform(u, version) }
-    render json: transformed
+    render json: serialized
   end
 
   # GET /api/v1/users/:id
   def show
-    version = ApiVersion.from_request(request)
     serialized = UserSerializer.new(@user).as_json
-    transformed = ApiTransformations::UserTransformations.transform(serialized, version)
-    render json: transformed
+    render json: serialized
   end
 
   # POST /api/v1/users
   def create
     user = User.new(user_params)
     if user.save
-      version = ApiVersion.from_request(request)
       serialized = UserSerializer.new(user).as_json
-      transformed = ApiTransformations::UserTransformations.transform(serialized, version)
-      render json: transformed, status: :created
+      render json: serialized, status: :created
     else
       render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
     end
@@ -34,10 +28,8 @@ class Api::V1::UsersController < ApplicationController
   # PATCH/PUT /api/v1/users/:id
   def update
     if @user.update(user_params)
-      version = ApiVersion.from_request(request)
       serialized = UserSerializer.new(@user).as_json
-      transformed = ApiTransformations::UserTransformations.transform(serialized, version)
-      render json: transformed
+      render json: serialized
     else
       render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
     end

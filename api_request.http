@@ -1,19 +1,20 @@
 # GET lista de users
 GET http://localhost:3000/api/v1/users
 Accept: application/json
-Stripe-Version: 2025-01-01
+X-API-Version: 2025-01-01
 
 ###
 
 GET http://localhost:3000/api/v1/users/1
 Accept: application/json
-Stripe-Version: 2023-10-01
+X-API-Version: 2025-01-01
 
 ###
 
 POST http://localhost:3000/api/v1/users
 Content-Type: application/json
 Accept: application/json
+X-API-Version: 2025-01-01
 
 {
   "user": {
@@ -28,7 +29,7 @@ Accept: application/json
 PATCH http://localhost:3000/api/v1/users/1
 Content-Type: application/json
 Accept: application/json
-Stripe-Version: 2024-05-15
+X-API-Version: 2025-01-01
 
 {
   "user": {
@@ -40,3 +41,4 @@ Stripe-Version: 2024-05-15
 
 DELETE http://localhost:3000/api/v1/users/1
 Accept: application/json
+X-API-Version: 2025-01-01
