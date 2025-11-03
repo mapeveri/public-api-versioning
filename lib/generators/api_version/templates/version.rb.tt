@@ -1,0 +1,7 @@
+class <%= @namespace %>::<%= @class_name %> < ApiVersion::Version
+  resource :<%= @resource.pluralize.underscore %>
+  timestamp <%= @timestamp %>
+
+  def change_set
+  end
+end
