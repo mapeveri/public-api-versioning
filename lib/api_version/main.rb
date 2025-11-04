@@ -10,7 +10,7 @@ module ApiVersion
     end
   end
 
-  private 
+  private
 
     def self.current_version
       api_current_version = Rails.application.config.x.api_current_version

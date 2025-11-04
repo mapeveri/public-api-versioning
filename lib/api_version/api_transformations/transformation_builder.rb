@@ -21,7 +21,7 @@ module ApiVersion
     end
 
     def split_field(field, into:)
-      values = @item[field.to_sym]&.to_s&.split(' ')
+      values = @item[field.to_sym]&.to_s&.split(" ")
       return unless values
       into.each_with_index { |f, i| @item[f.to_sym] = values[i] }
       @item.delete(field.to_sym)

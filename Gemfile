@@ -36,7 +36,7 @@ gem "thruster", require: false
 gem "rack-cors"
 
 # Serializers for Rails and Ruby objects
-gem 'active_model_serializers'
+gem "active_model_serializers"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -49,5 +49,5 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   # RSpec for Rails
-  gem 'rspec-rails'
+  gem "rspec-rails"
 end
