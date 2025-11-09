@@ -2,6 +2,9 @@ class <%= @namespace %>::<%= @class_name %> < ApiVersion::Version
   resource :<%= @resource.pluralize.underscore %>
   timestamp <%= @timestamp %>
 
-  def change_set
+  payload do |t|
+  end
+
+  response do |t|
   end
 end
