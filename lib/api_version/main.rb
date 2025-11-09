@@ -4,7 +4,6 @@ module ApiVersion
   def self.from_request(request)
     version = request.headers["X-API-Version"] || current_version
 
-    puts version
     (Rails.application.config.x.version_files[version] || []).map do |class_name|
       class_name.constantize
     end
