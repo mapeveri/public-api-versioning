@@ -13,6 +13,8 @@ require "action_text/engine"
 require "action_view/railtie"
 require "action_cable/engine"
 # require "rails/test_unit/railtie"
+require_relative "../lib/api_version"
+
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
