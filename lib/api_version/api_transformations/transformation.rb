@@ -25,9 +25,21 @@ module ApiVersion
         relevant_versions.sort_by(&:timestamp_value).each do |version_class|
           next unless version_class.send(block_type)
 
-          builder = ApiVersion::ApiTransformations::TransformationBuilder.new(data)
+          resource_key = controller_name.to_s.singularize.to_sym
+          target_data = if data.is_a?(Hash) && data.key?(resource_key)
+                          data[resource_key]
+                        else
+                          data
+                        end
+
+          builder = ApiVersion::ApiTransformations::TransformationBuilder.new(target_data)
           version_class.send(block_type).call(builder)
-          data = builder.build
+          
+          if data.is_a?(Hash) && data.key?(resource_key)
+             data[resource_key] = builder.build
+          else
+             data = builder.build
+          end
         end
 
         data
