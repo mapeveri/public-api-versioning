@@ -21,7 +21,9 @@ module ApiVersion
               version_files
             )
 
-            env['rack.input'] = StringIO.new(transformed.to_json)
+            transformed_json = transformed.to_json
+            env['rack.input'] = StringIO.new(transformed_json)
+            env['CONTENT_LENGTH'] = transformed_json.bytesize.to_s
           rescue JSON::ParserError
             # If parsing fails, we leave the body unchanged
           end
