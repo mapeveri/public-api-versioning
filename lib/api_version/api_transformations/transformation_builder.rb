@@ -43,6 +43,12 @@ module ApiVersion
       @item.delete(field.to_sym)
     end
 
+    def combine_fields(*fields, into:, &block)
+      values = fields.map { |f| @item[f.to_sym] }
+      @item[into.to_sym] = block.call(*values)
+      fields.each { |f| @item.delete(f.to_sym) }
+    end
+
     def transform(field_name, &block)
       @item[field_name] = block.call(@item)
     end
