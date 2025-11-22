@@ -63,8 +63,8 @@ RSpec.describe "ApiVersion Integration", type: :request do
     end
 
     allow(Rails.application.config.x).to receive(:version_files).and_return({
-      "2025-02-01" => ["TestVersions::Version20250201"],
-      "2025-03-01" => ["TestVersions::Version20250301"]
+      "2025-02-01" => [ "TestVersions::Version20250201" ],
+      "2025-03-01" => [ "TestVersions::Version20250301" ]
     })
   end
 
@@ -80,7 +80,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
         post "/api/v1/test", params: { test: { first_name: "John", last_name: "Doe" } }.to_json, headers: headers
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body, symbolize_names: true)
-        
+
         expect(json_response[:test][:nickname]).to eq("Anonymous")
         expect(json_response[:test][:full_name]).to eq("John Doe")
         expect(json_response[:test][:email]).to eq("default@example.com")

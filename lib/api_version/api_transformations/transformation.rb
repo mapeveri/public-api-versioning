@@ -28,13 +28,13 @@ module ApiVersion
           resource_key = controller_name.to_s.singularize.to_sym
           target_data = if data.is_a?(Hash) && data.key?(resource_key)
                           data[resource_key]
-                        else
+          else
                           data
-                        end
+          end
 
           builder = ApiVersion::ApiTransformations::TransformationBuilder.new(target_data)
           version_class.send(block_type).call(builder)
-          
+
           if data.is_a?(Hash) && data.key?(resource_key)
              data[resource_key] = builder.build
           else

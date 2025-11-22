@@ -3,7 +3,7 @@ class Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser 
   timestamp 202501010001
 
   payload do |t|
-    t.split_field :name, into: [:first_name, :last_name]
+    t.split_field :name, into: [ :first_name, :last_name ]
   end
 
   response do |t|

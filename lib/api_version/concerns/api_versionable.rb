@@ -34,6 +34,6 @@ module ApiVersion::ApiVersionable
 
     response.body = transformed.to_json
 
-    response.headers['Content-Length'] = response.body.bytesize.to_s if response.headers['Content-Length']
+    response.headers["Content-Length"] = response.body.bytesize.to_s if response.headers["Content-Length"]
   end
 end

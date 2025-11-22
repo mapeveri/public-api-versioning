@@ -9,9 +9,9 @@ module ApiVersion
     def add_field(field, _legacy_type = nil, default: nil, &block)
       value = if block_given?
                 block.call(@item)
-              else
+      else
                 default
-              end
+      end
       @item[field.to_sym] = value
     end
 
@@ -19,9 +19,9 @@ module ApiVersion
       if @item[field.to_sym].nil?
         value = if block_given?
                   block.call(@item)
-                else
+        else
                   default
-                end
+        end
         @item[field.to_sym] = value
       end
     end
