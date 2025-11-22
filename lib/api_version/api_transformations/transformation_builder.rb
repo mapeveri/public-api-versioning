@@ -6,8 +6,24 @@ module ApiVersion
       @item = item.is_a?(Hash) ? item.deep_symbolize_keys : item
     end
 
-    def add_field(field, _type = nil)
-      @item[field.to_sym] ||= nil
+    def add_field(field, _legacy_type = nil, default: nil, &block)
+      value = if block_given?
+                block.call(@item)
+              else
+                default
+              end
+      @item[field.to_sym] = value
+    end
+
+    def change_to_mandatory(field, default: nil, &block)
+      if @item[field.to_sym].nil?
+        value = if block_given?
+                  block.call(@item)
+                else
+                  default
+                end
+        @item[field.to_sym] = value
+      end
     end
 
     def remove_field(field)
