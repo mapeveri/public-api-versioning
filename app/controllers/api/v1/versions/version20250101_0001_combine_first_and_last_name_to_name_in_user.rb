@@ -7,8 +7,7 @@ class Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser 
   end
 
   response do |t|
-    t.add_field :name, :string
-    t.transform :name do |user|
+    t.add_field :name do |user|
       "#{user[:first_name]} #{user[:last_name]}".strip
     end
     t.remove_field :first_name
