@@ -6,24 +6,16 @@ module ApiVersion
       @item = item.is_a?(Hash) ? item.deep_symbolize_keys : item
     end
 
-    def add_field(field, _legacy_type = nil, default: nil, &block)
-      value = if block_given?
-                block.call(@item)
-      else
-                default
-      end
-      @item[field.to_sym] = value
+    def add_field(field, _legacy_type = nil, default: nil)
+      key = field.to_sym
+      @item[key] = block_given? ? yield(@item) : default
     end
 
-    def change_to_mandatory(field, default: nil, &block)
-      if @item[field.to_sym].nil?
-        value = if block_given?
-                  block.call(@item)
-        else
-                  default
-        end
-        @item[field.to_sym] = value
-      end
+    def change_to_mandatory(field, default: nil)
+      key = field.to_sym
+      return unless @item[key].nil?
+
+      @item[key] = block_given? ? yield(@item) : default
     end
 
     def remove_field(field)
@@ -31,9 +23,9 @@ module ApiVersion
     end
 
     def rename_field(old_field, new_field)
-      old_k = old_field.to_sym
-      new_k = new_field.to_sym
-      @item[new_k] = @item.delete(old_k) if @item.key?(old_k)
+      old_key = old_field.to_sym
+      new_key = new_field.to_sym
+      @item[new_key] = @item.delete(old_key) if @item.key?(old_key)
     end
 
     def split_field(field, into:)
