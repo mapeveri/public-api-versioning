@@ -193,6 +193,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
         expect(json_response[:test][:meta][:id]).to eq(999)
         expect(json_response[:test]).not_to have_key(:legacy_id)
       end
+    end
 
     describe "Response Nest Transformation (Version 2025-06-01)" do
       let(:headers) { { "X-API-VERSION" => "2025-06-01" } }
@@ -212,7 +213,6 @@ RSpec.describe "ApiVersion Integration", type: :request do
         expect(json_response[:nested_data][:new_key]).to eq("value")
         expect(json_response[:nested_data]).not_to have_key(:old_key)
       end
-    end
     end
   end
 end
