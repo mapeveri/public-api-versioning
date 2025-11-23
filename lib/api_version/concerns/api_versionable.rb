@@ -2,8 +2,8 @@ module ApiVersion::ApiVersionable
   extend ActiveSupport::Concern
 
   included do
-    after_action :apply_version_transform
     before_action :check_endpoint_status
+    after_action :apply_version_transform
   end
 
   private
@@ -30,7 +30,7 @@ module ApiVersion::ApiVersionable
     version_files = ApiVersion.from_request(request)
     body = JSON.parse(response.body, symbolize_names: true)
 
-    transformed = ApiVersion::ApiTransformations::Transformation.apply_response(controller_name, body, version_files)
+    transformed = ApiVersion::ApiTransformations::Transformation::Response.apply(controller_name, body, version_files)
 
     response.body = transformed.to_json
 

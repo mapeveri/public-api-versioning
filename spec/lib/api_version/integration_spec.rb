@@ -62,6 +62,21 @@ RSpec.describe "ApiVersion Integration", type: :request do
           p.rename_field :full_name, :name
         end
       end
+
+      class Version20250501 < ApiVersion::Version
+        timestamp "2025-05-01"
+        resource :test
+
+        payload do |p|
+          p.nest :user do |u|
+            u.rename_field :full_name, :name
+          end
+          p.each :items do |i|
+            i.add_field :active, default: true
+          end
+          p.move_field :legacy_id, to: [:meta, :id]
+        end
+      end
     end
   end
 
@@ -79,7 +94,8 @@ RSpec.describe "ApiVersion Integration", type: :request do
     allow(Rails.application.config.x).to receive(:version_files).and_return({
       "2025-02-01" => [ "TestVersions::Version20250201" ],
       "2025-03-01" => [ "TestVersions::Version20250301" ],
-      "2025-04-01" => [ "TestVersions::Version20250401" ]
+      "2025-04-01" => [ "TestVersions::Version20250401" ],
+      "2025-05-01" => [ "TestVersions::Version20250501" ]
     })
   end
 
@@ -144,6 +160,28 @@ RSpec.describe "ApiVersion Integration", type: :request do
         expect(json_response[:test]).not_to have_key(:password)
         expect(json_response[:test][:name]).to eq("John Doe")
         expect(json_response[:test]).not_to have_key(:full_name)
+      end
+    end
+
+    describe "Advanced Transformations (Version 2025-05-01)" do
+      let(:headers) { { "X-API-VERSION" => "2025-05-01", "Content-Type" => "application/json" } }
+
+      it "applies nest, each, and move transformations" do
+        params = {
+          test: {
+            user: { full_name: "Jane Doe" },
+            items: [{ name: "Item A" }],
+            legacy_id: 999
+          }
+        }
+        post "/api/v1/test", params: params.to_json, headers: headers
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body, symbolize_names: true)
+
+        expect(json_response[:test][:user][:name]).to eq("Jane Doe")
+        expect(json_response[:test][:items].first[:active]).to be true
+        expect(json_response[:test][:meta][:id]).to eq(999)
+        expect(json_response[:test]).not_to have_key(:legacy_id)
       end
     end
   end

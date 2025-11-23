@@ -15,7 +15,7 @@ module ApiVersion
 
             version_files = ApiVersion.from_request(request)
             controller_name = request.path.split("/").last
-            transformed = ApiVersion::ApiTransformations::Transformation.apply_payload(
+            transformed = ApiVersion::ApiTransformations::Transformation::RequestPayload.apply(
               controller_name,
               body,
               version_files
