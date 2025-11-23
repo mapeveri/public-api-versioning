@@ -39,6 +39,10 @@ RSpec.describe "ApiVersion Integration", type: :request do
           p.change_to_mandatory :email, default: "default@example.com"
         end
 
+        response do |r|
+          r.add_field :status_message, default: "Operation successful"
+        end
+
         endpoint_deprecated :test, :index
       end
 
@@ -84,6 +88,18 @@ RSpec.describe "ApiVersion Integration", type: :request do
         expect(json_response[:test][:nickname]).to eq("Anonymous")
         expect(json_response[:test][:full_name]).to eq("John Doe")
         expect(json_response[:test][:email]).to eq("default@example.com")
+      end
+    end
+
+    describe "Response Transformations (Version 2025-02-01)" do
+      let(:headers) { { "X-API-VERSION" => "2025-02-01" } }
+
+      it "adds a field to the response" do
+        get "/api/v1/test", headers: headers
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body, symbolize_names: true)
+
+        expect(json_response[:status_message]).to eq("Operation successful")
       end
     end
 
