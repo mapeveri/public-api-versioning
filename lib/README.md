@@ -11,6 +11,7 @@ This library supports a wide range of transformations for both **Request Payload
 - **Remove Field**: Remove fields that are no longer needed.
 - **Rename Field**: Rename fields to match new schemas.
 - **Change to Mandatory**: Ensure a field exists, providing a default if missing.
+- **Transform**: Apply custom logic to modify a field's value based on the entire object.
 
 ### Structural Transformations
 - **Nest**: Transform flat structures into nested objects.
@@ -82,6 +83,18 @@ class Api::V1::Versions::Version20250101 < ApiVersion::Version
     # Transformed to: { "name": "John Doe" }
     t.combine_fields :first_name, :last_name, into: :name do |first, last|
       "#{first} #{last}".strip
+    end
+
+    # Custom transformation with full access to the item
+    # Useful for complex calculations or conditional logic
+    t.transform(:status) do |item|
+      if item[:paid] && item[:shipped]
+        "completed"
+      elsif item[:paid]
+        "processing"
+      else
+        "pending"
+      end
     end
   end
 end
