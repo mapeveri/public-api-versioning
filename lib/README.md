@@ -39,9 +39,6 @@ Create an initializer (e.g., `config/initializers/api_version.rb`) to configure 
 # Set the current stable version of your API
 Rails.application.config.x.api_current_version = "2025-11-01"
 
-# Define the path where version files are located
-Rails.application.config.api_version_base_path = "app/controllers/api/v1/versions"
-
 # Map versions to their specific transformation classes
 Rails.application.config.x.version_files = {
   "2025-01-01" => [ "Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser" ],
@@ -58,6 +55,28 @@ class ApplicationController < ActionController::API
   include ApiVersion::ApiVersionable
 end
 ```
+
+---
+
+## Generating Version Files
+
+Use the built-in generator to create new version transformation files:
+
+```bash
+# Basic usage (defaults to app/controllers/versions)
+rails generate api_version users
+
+# Specify custom path for different API versions
+rails generate api_version users --path=app/controllers/api/v1/versions
+
+# This creates a file like:
+# app/controllers/api/v1/versions/version202511231845_users.rb
+```
+
+The generator will:
+- Create a timestamped version file
+- Set up the correct namespace based on the path
+- Include a basic template for `payload` and `response` blocks
 
 ---
 

@@ -3,6 +3,7 @@ require "fileutils"
 
 class ApiVersionGenerator < Rails::Generators::Base
   argument :resource, type: :string
+  class_option :path, type: :string, default: nil, desc: "Custom path for version file (e.g., app/controllers/api/v2/versions)"
 
   source_root File.expand_path("templates", __dir__)
 
@@ -10,7 +11,7 @@ class ApiVersionGenerator < Rails::Generators::Base
     @timestamp = Time.now.strftime("%Y%m%d%H%M")
     @resource = resource
 
-    @base_path = Rails.application.config.api_version_base_path || "app/versions"
+    @base_path = options[:path] || "app/controllers/versions"
     FileUtils.mkdir_p(@base_path) unless Dir.exist?(@base_path)
 
     @namespace = path_to_namespace(@base_path)
