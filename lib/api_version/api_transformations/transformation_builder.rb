@@ -67,10 +67,19 @@ module ApiVersion
       end
 
       def move_field(field, to:)
-        key = field.to_sym
-        return unless @item.key?(key)
+        source_path = Array(field).map(&:to_sym)
+        source_key = source_path.pop
+        source_container = @item
 
-        value = @item.delete(key)
+        source_path.each do |key|
+          return unless source_container.is_a?(Hash) && source_container.key?(key)
+          source_container = source_container[key]
+        end
+
+        return unless source_container.is_a?(Hash) && source_container.key?(source_key)
+
+        value = source_container.delete(source_key)
+
         target_path = Array(to).map(&:to_sym)
         last_key = target_path.pop
 

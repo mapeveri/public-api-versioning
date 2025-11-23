@@ -113,6 +113,11 @@ class Api::V1::Versions::Version20250501 < ApiVersion::Version
     # Input:  { "legacy_tracking_id": "TRACK-123" }
     # Output: { "meta": { "tracking": { "id": "TRACK-123" } } }
     t.move_field :legacy_tracking_id, to: [:meta, :tracking, :id]
+
+    # Flatten a nested field (move to root)
+    # Input:  { "meta": { "tracking": { "id": "TRACK-123" } } }
+    # Output: { "legacy_tracking_id": "TRACK-123" }
+    t.move_field [:meta, :tracking, :id], to: :legacy_tracking_id
   end
 end
 ```
