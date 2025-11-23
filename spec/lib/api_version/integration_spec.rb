@@ -52,6 +52,16 @@ RSpec.describe "ApiVersion Integration", type: :request do
 
         endpoint_removed :test, :show
       end
+
+      class Version20250401 < ApiVersion::Version
+        timestamp "2025-04-01"
+        resource :test
+
+        payload do |p|
+          p.remove_field :password
+          p.rename_field :full_name, :name
+        end
+      end
     end
   end
 
@@ -68,7 +78,8 @@ RSpec.describe "ApiVersion Integration", type: :request do
 
     allow(Rails.application.config.x).to receive(:version_files).and_return({
       "2025-02-01" => [ "TestVersions::Version20250201" ],
-      "2025-03-01" => [ "TestVersions::Version20250301" ]
+      "2025-03-01" => [ "TestVersions::Version20250301" ],
+      "2025-04-01" => [ "TestVersions::Version20250401" ]
     })
   end
 
@@ -119,6 +130,20 @@ RSpec.describe "ApiVersion Integration", type: :request do
         get "/api/v1/test/1", headers: headers
         expect(response).to have_http_status(:gone)
         expect(JSON.parse(response.body)["error"]).to eq("Gone")
+      end
+    end
+
+    describe "Payload Transformations (Version 2025-04-01)" do
+      let(:headers) { { "X-API-VERSION" => "2025-04-01", "Content-Type" => "application/json" } }
+
+      it "removes and renames fields" do
+        post "/api/v1/test", params: { test: { password: "secret", full_name: "John Doe" } }.to_json, headers: headers
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body, symbolize_names: true)
+
+        expect(json_response[:test]).not_to have_key(:password)
+        expect(json_response[:test][:name]).to eq("John Doe")
+        expect(json_response[:test]).not_to have_key(:full_name)
       end
     end
   end
