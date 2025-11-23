@@ -25,56 +25,65 @@ RSpec.describe "ApiVersion Integration", type: :request do
     Object.send(:remove_const, :ApiVersionTest)
   end
 
-  before(:all) do
-    module TestVersions
-      class Version20250201 < ApiVersion::Version
-        timestamp "2025-02-01"
-        resource :test
+  module TestVersions
+    class Version20250201 < ApiVersion::Version
+      timestamp "2025-02-01"
+      resource :test
 
-        payload do |p|
-          p.add_field :nickname, default: "Anonymous"
-          p.add_field :full_name do |item|
-            "#{item[:first_name]} #{item[:last_name]}"
-          end
-          p.change_to_mandatory :email, default: "default@example.com"
+      payload do |p|
+        p.add_field :nickname, default: "Anonymous"
+        p.add_field :full_name do |item|
+          "#{item[:first_name]} #{item[:last_name]}"
         end
-
-        response do |r|
-          r.add_field :status_message, default: "Operation successful"
-        end
-
-        endpoint_deprecated :test, :index
+        p.change_to_mandatory :email, default: "default@example.com"
       end
 
-      class Version20250301 < ApiVersion::Version
-        timestamp "2025-03-01"
-        resource :test
-
-        endpoint_removed :test, :show
+      response do |r|
+        r.add_field :status_message, default: "Operation successful"
       end
 
-      class Version20250401 < ApiVersion::Version
-        timestamp "2025-04-01"
-        resource :test
+      endpoint_deprecated :test, :index
+    end
 
-        payload do |p|
-          p.remove_field :password
-          p.rename_field :full_name, :name
+    class Version20250301 < ApiVersion::Version
+      timestamp "2025-03-01"
+      resource :test
+
+      endpoint_removed :test, :show
+    end
+
+    class Version20250401 < ApiVersion::Version
+      timestamp "2025-04-01"
+      resource :test
+
+      payload do |p|
+        p.remove_field :password
+        p.rename_field :full_name, :name
+      end
+    end
+
+    class Version20250501 < ApiVersion::Version
+      timestamp "2025-05-01"
+      resource :test
+
+      payload do |p|
+        p.nest :user do |u|
+          u.rename_field :full_name, :name
         end
+        p.each :items do |i|
+          i.add_field :active, default: true
+        end
+        p.move_field :legacy_id, to: [ :meta, :id ]
       end
+    end
 
-      class Version20250501 < ApiVersion::Version
-        timestamp "2025-05-01"
-        resource :test
+    class Version20250601 < ApiVersion::Version
+      timestamp "2025-06-01"
+      resource :test
 
-        payload do |p|
-          p.nest :user do |u|
-            u.rename_field :full_name, :name
-          end
-          p.each :items do |i|
-            i.add_field :active, default: true
-          end
-          p.move_field :legacy_id, to: [ :meta, :id ]
+      response do |r|
+        r.nest :nested_data do |n|
+          n.rename_field :old_key, :new_key
         end
       end
     end
@@ -95,7 +104,8 @@ RSpec.describe "ApiVersion Integration", type: :request do
       "2025-02-01" => [ "TestVersions::Version20250201" ],
       "2025-03-01" => [ "TestVersions::Version20250301" ],
       "2025-04-01" => [ "TestVersions::Version20250401" ],
-      "2025-05-01" => [ "TestVersions::Version20250501" ]
+      "2025-05-01" => [ "TestVersions::Version20250501" ],
+      "2025-06-01" => [ "TestVersions::Version20250601" ]
     })
   end
 
@@ -183,6 +193,26 @@ RSpec.describe "ApiVersion Integration", type: :request do
         expect(json_response[:test][:meta][:id]).to eq(999)
         expect(json_response[:test]).not_to have_key(:legacy_id)
       end
+
+    describe "Response Nest Transformation (Version 2025-06-01)" do
+      let(:headers) { { "X-API-VERSION" => "2025-06-01" } }
+
+      before do
+        # Mock the controller response for this specific test
+        allow_any_instance_of(ApiVersionTest::TestController).to receive(:index) do |controller|
+          controller.render json: { nested_data: { old_key: "value" } }
+        end
+      end
+
+      it "applies nest transformation to response" do
+        get "/api/v1/test", headers: headers
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body, symbolize_names: true)
+
+        expect(json_response[:nested_data][:new_key]).to eq("value")
+        expect(json_response[:nested_data]).not_to have_key(:old_key)
+      end
+    end
     end
   end
 end

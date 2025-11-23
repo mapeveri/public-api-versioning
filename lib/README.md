@@ -119,6 +119,15 @@ class Api::V1::Versions::Version20250501 < ApiVersion::Version
     # Output: { "legacy_tracking_id": "TRACK-123" }
     t.move_field [:meta, :tracking, :id], to: :legacy_tracking_id
   end
+
+  response do |t|
+    # Nested transformation in response (also works!)
+    # Input:  { "user_data": { "old_field": "value" } }
+    # Output: { "user_data": { "new_field": "value" } }
+    t.nest :user_data do |data|
+      data.rename_field :old_field, :new_field
+    end
+  end
 end
 ```
 
