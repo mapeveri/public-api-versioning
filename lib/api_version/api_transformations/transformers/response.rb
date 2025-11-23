@@ -2,9 +2,9 @@ module ApiVersion
   module ApiTransformations
     module Transformation
       module Response
-        def self.apply(controller_name, params, version_files)
-          if params.is_a?(Array)
-            return params.map { |item| apply(controller_name, item, version_files) }
+        def self.apply(controller_name, body, version_files)
+          if body.is_a?(Array)
+            return body.map { |item| apply(controller_name, item, version_files) }
           end
 
           version_files = ApiTransformations::VersionFilesFinder.find(controller_name, version_files)
@@ -12,24 +12,12 @@ module ApiVersion
           version_files.each do |version_class|
             next unless version_class.send(:response_block)
 
-            resource_key = controller_name.to_s.singularize.to_sym
-            target_data = if params.is_a?(Hash) && params.key?(resource_key)
-              params[resource_key]
-            else
-              params
-            end
-
-            builder = ApiVersion::ApiTransformations::TransformationBuilder.new(target_data)
+            builder = ApiVersion::ApiTransformations::TransformationBuilder.new(body)
             version_class.send(:response_block).call(builder)
-
-            if params.is_a?(Hash) && params.key?(resource_key)
-              params[resource_key] = builder.build
-            else
-              params = builder.build
-            end
+            body = builder.build
           end
 
-          params
+          body
         end
       end
     end

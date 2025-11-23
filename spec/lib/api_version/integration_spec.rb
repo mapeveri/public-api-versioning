@@ -74,7 +74,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
           p.each :items do |i|
             i.add_field :active, default: true
           end
-          p.move_field :legacy_id, to: [:meta, :id]
+          p.move_field :legacy_id, to: [ :meta, :id ]
         end
       end
     end
@@ -170,7 +170,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
         params = {
           test: {
             user: { full_name: "Jane Doe" },
-            items: [{ name: "Item A" }],
+            items: [ { name: "Item A" } ],
             legacy_id: 999
           }
         }

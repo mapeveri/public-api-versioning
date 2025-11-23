@@ -47,18 +47,18 @@ RSpec.describe ApiVersion::ApiTransformations::TransformationBuilder do
 
     describe "#move_field" do
       it "moves a field to a nested location" do
-        subject.move_field(:legacy_id, to: [:meta, :id])
+        subject.move_field(:legacy_id, to: [ :meta, :id ])
         expect(subject.build[:meta][:id]).to eq(123)
         expect(subject.build).not_to have_key(:legacy_id)
       end
 
       it "creates intermediate keys if they don't exist" do
-        subject.move_field(:legacy_id, to: [:new_section, :deep, :id])
+        subject.move_field(:legacy_id, to: [ :new_section, :deep, :id ])
         expect(subject.build[:new_section][:deep][:id]).to eq(123)
       end
 
       it "does nothing if field does not exist" do
-        subject.move_field(:missing, to: [:somewhere])
+        subject.move_field(:missing, to: [ :somewhere ])
         expect(subject.build).not_to have_key(:somewhere)
       end
     end
