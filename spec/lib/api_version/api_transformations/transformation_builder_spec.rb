@@ -66,14 +66,14 @@ RSpec.describe ApiVersion::ApiTransformations::TransformationBuilder do
 
     describe "#split_field" do
       it "splits a field into multiple fields" do
-        subject.split_field(:full_name, into: [:fname, :lname])
+        subject.split_field(:full_name, into: [ :fname, :lname ])
         expect(subject.build[:fname]).to eq("John")
         expect(subject.build[:lname]).to eq("Doe")
         expect(subject.build).not_to have_key(:full_name)
       end
 
       it "does nothing if field is missing" do
-        subject.split_field(:missing, into: [:a, :b])
+        subject.split_field(:missing, into: [ :a, :b ])
         expect(subject.build).not_to have_key(:a)
       end
     end
