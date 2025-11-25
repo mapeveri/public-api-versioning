@@ -46,6 +46,30 @@ Rails.application.config.x.version_files = {
 }
 ```
 
+#### Multiple APIs (v1, v2, etc.)
+
+If you have multiple APIs at different URL paths (e.g., `/api/v1/*` and `/api/v2/*`), each can have its own current version:
+
+```ruby
+# For multiple APIs, use api_current_versions instead
+Rails.application.config.x.api_current_versions = {
+  "v1" => "2025-03-01",  # /api/v1/* uses this as current version
+  "v2" => "2025-11-01"   # /api/v2/* uses this as current version
+}
+
+# version_files remains the same
+Rails.application.config.x.version_files = {
+  "2025-01-01" => [ "Api::V1::Versions::Version..." ],
+  "2025-03-01" => [],  # V1 current version
+  "2025-11-01" => []   # V2 current version
+}
+```
+
+**How it works:**
+- The system detects the API namespace from your controller class name (`Api::V1::UsersController` → `"v1"`)
+- Uses the corresponding current version from `api_current_versions`
+- Falls back to `api_current_version` if namespace not found (backward compatible)
+
 ### 2. Controller Setup
 Include the `ApiVersion::ApiVersionable` concern in your base API controller.
 
