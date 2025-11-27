@@ -4,7 +4,7 @@ module ApiVersion
   def self.from_request(request, controller = nil)
     version = request.headers["X-API-Version"] || current_version(controller)
 
-    namespace = extract_api_namespace(controller, Rails.application.config.x.api_current_versions.keys)
+    namespace = detect_api_version_from_path(controller, Rails.application.config.x.api_current_versions.keys)
 
     api_version_files = Rails.application.config.x.version_files[namespace] || {}
 
@@ -28,14 +28,14 @@ module ApiVersion
       versions = Rails.application.config.x.api_current_versions
 
       if controller
-        namespace = extract_api_namespace(controller, versions.keys)
+        namespace = detect_api_version_from_path(controller, versions.keys)
         return versions[namespace] if namespace && versions[namespace]
       end
 
       raise Errors::MissingCurrentVersionError.new
     end
 
-    def self.extract_api_namespace(controller, version_keys)
+    def self.detect_api_version_from_path(controller, version_keys)
       path = controller.request.path
       version_keys.find { |key| path.include?("/#{key}/") }
     end

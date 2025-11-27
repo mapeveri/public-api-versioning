@@ -53,20 +53,20 @@ RSpec.describe ApiVersion do
     end
   end
 
-  describe ".extract_api_namespace" do
+  describe ".detect_api_version_from_path" do
     it "extracts v1 from path /api/v1/users" do
       controller = double("Controller", request: double(path: "/api/v1/users"))
-      expect(described_class.send(:extract_api_namespace, controller, ["v1", "v2"])).to eq("v1")
+      expect(described_class.send(:detect_api_version_from_path, controller, ["v1", "v2"])).to eq("v1")
     end
 
     it "extracts v2 from path /api/v2/products" do
       controller = double("Controller", request: double(path: "/api/v2/products"))
-      expect(described_class.send(:extract_api_namespace, controller, ["v1", "v2"])).to eq("v2")
+      expect(described_class.send(:detect_api_version_from_path, controller, ["v1", "v2"])).to eq("v2")
     end
 
     it "returns nil if version not in path" do
       controller = double("Controller", request: double(path: "/api/v3/users"))
-      expect(described_class.send(:extract_api_namespace, controller, ["v1", "v2"])).to be_nil
+      expect(described_class.send(:detect_api_version_from_path, controller, ["v1", "v2"])).to be_nil
     end
   end
 
