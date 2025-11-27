@@ -27,11 +27,29 @@ RSpec.describe ApiVersion do
       expect(described_class.from_request(request, controller)).to eq([version_class])
     end
 
-    it "returns empty array if version not found in namespace" do
+    it "raises InvalidVersionError if version not found in namespace when using header" do
       request = double("Request", headers: { "X-API-Version" => "2025-11-01" }, path: "/api/v1/users")
       controller = double("Controller", request: request)
 
-      expect(described_class.from_request(request, controller)).to eq([])
+      expect { described_class.from_request(request, controller) }.to raise_error(ApiVersion::Errors::InvalidVersionError)
+    end
+
+    it "raises InvalidVersionError when X-API-Version header contains invalid version" do
+      request = double("Request", headers: { "X-API-Version" => "9999-99-99" }, path: "/api/v1/users")
+      controller = double("Controller", request: request)
+
+      expect { described_class.from_request(request, controller) }.to raise_error(ApiVersion::Errors::InvalidVersionError)
+    end
+
+    it "does not raise error when no X-API-Version header is provided and uses current version" do
+      request = double("Request", headers: {}, path: "/api/v1/users")
+      controller = double("Controller", request: request)
+
+      version_class = double("VersionClass")
+      stub_const("SomeVersionClass", version_class)
+
+      result = described_class.from_request(request, controller)
+      expect(result).to eq([version_class])
     end
   end
 

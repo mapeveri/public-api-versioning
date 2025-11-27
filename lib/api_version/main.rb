@@ -8,6 +8,10 @@ module ApiVersion
 
     api_version_files = Rails.application.config.x.version_files[namespace] || {}
 
+    if request.headers["X-API-Version"] && !api_version_files.key?(version)
+      raise Errors::InvalidVersionError.new(version, namespace, api_version_files.keys)
+    end
+
     (api_version_files[version] || []).map do |class_name|
       class_name.constantize
     end

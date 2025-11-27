@@ -1,6 +1,6 @@
-class Api::V2::Versions::Version202511270001Users < ApiVersion::Version
+class Api::V2::Versions::Version202501010001Users < ApiVersion::Version
   resource :users
-  timestamp "2025-11-27"
+  timestamp "2025-01-01"
 
   payload do |t|
   end

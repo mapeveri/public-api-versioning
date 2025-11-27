@@ -2,11 +2,16 @@ module ApiVersion::ApiVersionable
   extend ActiveSupport::Concern
 
   included do
+    rescue_from ApiVersion::Errors::InvalidVersionError, with: :handle_invalid_version
     before_action :check_endpoint_status
     after_action :apply_version_transform
   end
 
   private
+
+  def handle_invalid_version(exception)
+    render json: { error: exception.message }, status: :bad_request
+  end
 
   def check_endpoint_status
     version_files = ApiVersion.from_request(request, self)
