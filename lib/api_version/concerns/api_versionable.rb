@@ -2,14 +2,19 @@ module ApiVersion::ApiVersionable
   extend ActiveSupport::Concern
 
   included do
+    rescue_from ApiVersion::Errors::InvalidVersionError, with: :handle_invalid_version
     before_action :check_endpoint_status
     after_action :apply_version_transform
   end
 
   private
 
+  def handle_invalid_version(exception)
+    render json: { error: exception.message }, status: :bad_request
+  end
+
   def check_endpoint_status
-    version_files = ApiVersion.from_request(request)
+    version_files = ApiVersion.from_request(request, self)
     return if version_files.empty?
 
     version_files.each do |version_class|
@@ -27,7 +32,7 @@ module ApiVersion::ApiVersionable
   def apply_version_transform
     return unless response.media_type == "application/json"
 
-    version_files = ApiVersion.from_request(request)
+    version_files = ApiVersion.from_request(request, self)
     body = JSON.parse(response.body, symbolize_names: true)
 
     transformed = ApiVersion::ApiTransformations::Transformation::Response.apply(controller_name, body, version_files)

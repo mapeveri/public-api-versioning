@@ -36,15 +36,30 @@ Create an initializer (e.g., `config/initializers/api_version.rb`) to configure 
 ```ruby
 # config/initializers/api_version.rb
 
-# Set the current stable version of your API
-Rails.application.config.x.api_current_version = "2025-11-01"
+# Set the current stable version for each API namespace (v1, v2, etc.)
+Rails.application.config.x.api_current_versions = {
+  "v1" => "2025-11-01", # /api/v1/* uses this as current version
+  "v2" => "2025-11-27"  # /api/v2/* uses this as current version
+}
 
 # Map versions to their specific transformation classes
+# Grouped by API namespace to ensure versions are scoped correctly
 Rails.application.config.x.version_files = {
-  "2025-01-01" => [ "Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser" ],
-  "2025-11-01" => [] # Current version usually has no transformations
+  "v1" => {
+    "2025-01-01" => [ "Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser" ],
+    "2025-11-01" => [] # Current version usually has no transformations
+  },
+  "v2" => {
+    "2025-11-27" => []
+  }
 }
 ```
+
+**How it works:**
+- The system detects the API namespace from the request path (e.g., `/api/v1/users` → `"v1"`)
+- Uses the corresponding current version from `api_current_versions`
+- Version files are scoped to their API namespace (V1 versions cannot be used in V2 and vice versa)
+- If an invalid version is requested via `X-API-Version` header, returns 400 Bad Request
 
 ### 2. Controller Setup
 Include the `ApiVersion::ApiVersionable` concern in your base API controller.
@@ -176,4 +191,29 @@ class Api::V1::Versions::Version20250601 < ApiVersion::Version
   # Returns 410 Gone
   endpoint_removed :products, :delete
 end
+```
+
+---
+
+## Version Validation
+
+The library validates API versions requested via the `X-API-Version` header:
+
+- **Valid version**: Applies transformations for that version
+- **Invalid version**: Returns `400 Bad Request` with error message listing available versions
+- **No header**: Uses the current version for that API namespace (no transformations)
+
+**Example:**
+```bash
+# Valid version
+curl -H "X-API-Version: 2025-01-01" http://localhost:3000/api/v1/users
+# → Returns transformed response
+
+# Invalid version
+curl -H "X-API-Version: 9999-99-99" http://localhost:3000/api/v1/users
+# → Returns 400 Bad Request with error message
+
+# No header
+curl http://localhost:3000/api/v1/users
+# → Uses current version (2025-11-01)
 ```
