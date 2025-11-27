@@ -36,32 +36,22 @@ Create an initializer (e.g., `config/initializers/api_version.rb`) to configure 
 ```ruby
 # config/initializers/api_version.rb
 
-# Set the current stable version of your API
-Rails.application.config.x.api_current_version = "2025-11-01"
+# Set the current stable version for each API namespace (v1, v2, etc.)
+Rails.application.config.x.api_current_versions = {
+  "v1" => "2025-11-01", # /api/v1/* uses this as current version
+  "v2" => "2025-11-27"  # /api/v2/* uses this as current version
+}
 
 # Map versions to their specific transformation classes
+# Grouped by API namespace to ensure versions are scoped correctly
 Rails.application.config.x.version_files = {
-  "2025-01-01" => [ "Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser" ],
-  "2025-11-01" => [] # Current version usually has no transformations
-}
-```
-
-#### Multiple APIs (v1, v2, etc.)
-
-If you have multiple APIs at different URL paths (e.g., `/api/v1/*` and `/api/v2/*`), each can have its own current version:
-
-```ruby
-# For multiple APIs, use api_current_versions instead
-Rails.application.config.x.api_current_versions = {
-  "v1" => "2025-03-01",  # /api/v1/* uses this as current version
-  "v2" => "2025-11-01"   # /api/v2/* uses this as current version
-}
-
-# version_files remains the same
-Rails.application.config.x.version_files = {
-  "2025-01-01" => [ "Api::V1::Versions::Version..." ],
-  "2025-03-01" => [],  # V1 current version
-  "2025-11-01" => []   # V2 current version
+  "v1" => {
+    "2025-01-01" => [ "Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser" ],
+    "2025-11-01" => [] # Current version usually has no transformations
+  },
+  "v2" => {
+    "2025-11-27" => []
+  }
 }
 ```
 

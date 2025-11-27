@@ -4,7 +4,11 @@ module ApiVersion
   def self.from_request(request, controller = nil)
     version = request.headers["X-API-Version"] || current_version(controller)
 
-    (Rails.application.config.x.version_files[version] || []).map do |class_name|
+    namespace = extract_api_namespace(controller, Rails.application.config.x.api_current_versions.keys)
+
+    api_version_files = Rails.application.config.x.version_files[namespace] || {}
+
+    (api_version_files[version] || []).map do |class_name|
       class_name.constantize
     end
   end
@@ -12,29 +16,23 @@ module ApiVersion
   private
 
     def self.current_version(controller = nil)
-      # Try multi-API config first
-      if Rails.application.config.x.respond_to?(:api_current_versions)
-        versions = Rails.application.config.x.api_current_versions
-        if versions.is_a?(Hash) && controller
-          namespace = extract_api_namespace(controller)
-          return versions[namespace] if namespace && versions[namespace]
-        end
-      end
-
-      # Fall back to single API config (backward compatible)
-      api_current_version = Rails.application.config.x.api_current_version
-
-      if !api_current_version.is_a?(String) || api_current_version.blank?
+      unless Rails.application.config.x.respond_to?(:api_current_versions) &&
+             Rails.application.config.x.api_current_versions.is_a?(Hash)
         raise Errors::MissingCurrentVersionError.new
       end
 
-      api_current_version
+      versions = Rails.application.config.x.api_current_versions
+
+      if controller
+        namespace = extract_api_namespace(controller, versions.keys)
+        return versions[namespace] if namespace && versions[namespace]
+      end
+
+      raise Errors::MissingCurrentVersionError.new
     end
 
-    def self.extract_api_namespace(controller)
-      # Api::V1::UsersController → "v1"
-      # Api::V2::ProductsController → "v2"
-      parts = controller.class.name.split("::")
-      parts[1]&.downcase if parts.length >= 2
+    def self.extract_api_namespace(controller, version_keys)
+      path = controller.request.path
+      version_keys.find { |key| path.include?("/#{key}/") }
     end
 end
