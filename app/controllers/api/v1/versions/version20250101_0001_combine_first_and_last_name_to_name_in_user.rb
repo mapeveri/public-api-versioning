@@ -1,6 +1,7 @@
 class Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser < ApiVersion::Version
   resource :users
-  timestamp 202501010001
+  timestamp "2025-01-01"
+  namespace "v1"
 
   payload do |t|
     t.split_field :name, into: [ :first_name, :last_name ]

@@ -8,8 +8,9 @@ module ApiVersion
           end
 
           version_files = ApiTransformations::VersionFilesFinder.find(controller_name, version_files)
+          version_files_desc_order = version_files.reverse
 
-          version_files.each do |version_class|
+          version_files_desc_order.each do |version_class|
             next unless version_class.send(:response_block)
 
             builder = ApiVersion::ApiTransformations::TransformationBuilder.new(body)

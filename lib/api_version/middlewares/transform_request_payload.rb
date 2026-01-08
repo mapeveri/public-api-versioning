@@ -14,7 +14,14 @@ module ApiVersion
             request.body.rewind
 
             version_files = ApiVersion.from_request(request)
-            controller_name = request.path.split("/").last
+            
+            begin
+              route_params = Rails.application.routes.recognize_path(request.path, method: request.request_method)
+              controller_name = route_params[:controller].split("/").last
+            rescue ActionController::RoutingError
+              controller_name = request.path.split("/").last
+            end
+
             transformed = ApiVersion::ApiTransformations::Transformation::RequestPayload.apply(
               controller_name,
               body,

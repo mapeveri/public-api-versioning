@@ -31,7 +31,7 @@ This library supports a wide range of transformations for both **Request Payload
 ## Configuration
 
 ### 1. Initializer
-Create an initializer (e.g., `config/initializers/api_version.rb`) to configure the current version and version files.
+Create an initializer (e.g., `config/initializers/api_version.rb`) to configure the current version for each API namespace.
 
 ```ruby
 # config/initializers/api_version.rb
@@ -41,25 +41,13 @@ Rails.application.config.x.api_current_versions = {
   "v1" => "2025-11-01", # /api/v1/* uses this as current version
   "v2" => "2025-11-27"  # /api/v2/* uses this as current version
 }
-
-# Map versions to their specific transformation classes
-# Grouped by API namespace to ensure versions are scoped correctly
-Rails.application.config.x.version_files = {
-  "v1" => {
-    "2025-01-01" => [ "Api::V1::Versions::Version202501010001CombineFirstAndLastNameToNameInUser" ],
-    "2025-11-01" => [] # Current version usually has no transformations
-  },
-  "v2" => {
-    "2025-11-27" => []
-  }
-}
 ```
 
 **How it works:**
-- The system detects the API namespace from the request path (e.g., `/api/v1/users` → `"v1"`)
-- Uses the corresponding current version from `api_current_versions`
-- Version files are scoped to their API namespace (V1 versions cannot be used in V2 and vice versa)
-- If an invalid version is requested via `X-API-Version` header, returns 400 Bad Request
+- **Automatic Discovery**: The library automatically scans `app/controllers/api/**/versions/*.rb` for transformation classes.
+- **Cumulative Transformations**: When a version is requested, the library finds all transformation files with a timestamp **greater than or equal** to the requested version and applies them in the correct order (ascending for requests, descending for responses).
+- **Namespace Scoping**: Versions can be scoped to their API namespace using the `namespace` DSL. This is optional; if omitted, the version applies globally or to the default namespace.
+- **Validation**: If a version newer than the current stable version is requested, it returns `400 Bad Request`.
 
 ### 2. Controller Setup
 Include the `ApiVersion::ApiVersionable` concern in your base API controller.
@@ -68,6 +56,11 @@ Include the `ApiVersion::ApiVersionable` concern in your base API controller.
 # app/controllers/application_controller.rb
 class ApplicationController < ActionController::API
   include ApiVersion::ApiVersionable
+
+  # Optional: Explicitly define the namespace if it's not in the URL path
+  # def api_version_namespace
+  #   "v1"
+  # end
 end
 ```
 
@@ -90,7 +83,8 @@ rails generate api_version users --path=app/controllers/api/v1/versions
 
 The generator will:
 - Create a timestamped version file
-- Set up the correct namespace based on the path
+- Automatically detect the namespace from the path (e.g., `api/v1/...` -> `v1`) or use the `--namespace` option.
+- If no namespace is detected, it generates a clean, non-namespaced version class.
 - Include a basic template for `payload` and `response` blocks
 
 ---
@@ -105,6 +99,7 @@ Define version classes inheriting from `ApiVersion::Version`. Use `payload` bloc
 class Api::V1::Versions::Version20250101 < ApiVersion::Version
   resource :users
   timestamp "2025-01-01"
+  namespace "v1"
 
   payload do |t|
     # Incoming request: { "name": "John Doe" }
@@ -140,6 +135,7 @@ end
 class Api::V1::Versions::Version20250501 < ApiVersion::Version
   resource :orders
   timestamp "2025-05-01"
+  namespace "v1"
 
   payload do |t|
     # Nested transformation
@@ -184,6 +180,7 @@ end
 class Api::V1::Versions::Version20250601 < ApiVersion::Version
   resource :products
   timestamp "2025-06-01"
+  namespace "v1"
 
   # Adds "Warning: 299 - Endpoint Deprecated" header
   endpoint_deprecated :products, :index
@@ -216,4 +213,52 @@ curl -H "X-API-Version: 9999-99-99" http://localhost:3000/api/v1/users
 # No header
 curl http://localhost:3000/api/v1/users
 # → Uses current version (2025-11-01)
+```
+
+---
+
+## Testing
+
+The library provides helpers to test your transformations in isolation. This is useful for verifying that a specific version correctly transforms the data without running a full integration test.
+
+### RSpec Setup
+Include the helpers in your spec configuration:
+
+```ruby
+# spec/rails_helper.rb
+RSpec.configure do |config|
+  config.include ApiVersion::TestHelpers
+end
+```
+
+### Usage
+Use `transform_payload` and `transform_response` to verify your logic:
+
+```ruby
+RSpec.describe "User Transformations" do
+  it "transforms the payload for an old version" do
+    input = { name: "John Doe" }
+    
+    # Simulates a request with X-API-Version: 2025-01-01
+    transformed = transform_payload(input, 
+      version: "2025-01-01", 
+      resource: :users, 
+      namespace: "v1"
+    )
+
+    expect(transformed).to eq({ first_name: "John", last_name: "Doe" })
+  end
+
+  it "transforms the response for an old version" do
+    output = { first_name: "John", last_name: "Doe" }
+    
+    transformed = transform_response(output, 
+      version: "2025-01-01", 
+      resource: :users, 
+      namespace: "v1"
+    )
+
+    expect(transformed).to eq({ name: "John Doe" })
+  end
+end
 ```

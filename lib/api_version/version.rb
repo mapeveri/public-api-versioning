@@ -1,7 +1,21 @@
 module ApiVersion
   class Version
     class << self
-      attr_reader :resource_name, :timestamp_value, :payload_block, :response_block, :removed_endpoints, :deprecated_endpoints
+      attr_reader :resource_name, :timestamp_value, :payload_block, :response_block, :removed_endpoints, :deprecated_endpoints, :namespace_value
+
+      def inherited(subclass)
+        super
+        @subclasses ||= []
+        @subclasses << subclass
+      end
+
+      def all_versions
+        @subclasses || []
+      end
+
+      def clear_versions
+        @subclasses = []
+      end
 
       def timestamp(value)
         @timestamp_value = value
@@ -9,6 +23,10 @@ module ApiVersion
 
       def resource(name)
         @resource_name = name.to_sym
+      end
+
+      def namespace(name)
+        @namespace_value = name.to_s
       end
 
       def payload(&block)

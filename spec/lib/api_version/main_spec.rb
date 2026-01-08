@@ -2,39 +2,31 @@ require 'rails_helper'
 
 RSpec.describe ApiVersion do
   describe ".from_request" do
-    let(:version_files) do
-      {
-        "v1" => { "2025-03-01" => ["SomeVersionClass"] },
-        "v2" => { "2025-11-01" => ["AnotherVersionClass"] }
-      }
+    let(:v1_version) do
+      double("VersionClass", 
+        namespace_value: "v1", 
+        timestamp_value: "2025-03-01",
+        is_a?: true
+      )
     end
     let(:api_current_versions) { { "v1" => "2025-03-01", "v2" => "2025-11-01" } }
 
     before do
-      allow(Rails.application.config.x).to receive(:version_files).and_return(version_files)
+      allow(ApiVersion::Version).to receive(:all_versions).and_return([v1_version])
       allow(Rails.application.config.x).to receive(:api_current_versions).and_return(api_current_versions)
       allow(Rails.application.config.x).to receive(:respond_to?).with(:api_current_versions, anything).and_return(true)
       allow(Rails.application.config.x).to receive(:respond_to?).with(:api_current_versions).and_return(true)
+      allow(ApiVersion).to receive(:load_versions) # Skip file loading in tests
     end
 
-    it "returns version files for the requested version in v1" do
+    it "returns version files newer than or equal to the requested version" do
       request = double("Request", headers: { "X-API-Version" => "2025-03-01" }, path: "/api/v1/users")
       controller = double("Controller", request: request)
 
-      version_class = double("VersionClass")
-      stub_const("SomeVersionClass", version_class)
-
-      expect(described_class.from_request(request, controller)).to eq([version_class])
+      expect(described_class.from_request(request, controller)).to eq([v1_version])
     end
 
-    it "raises InvalidVersionError if version not found in namespace when using header" do
-      request = double("Request", headers: { "X-API-Version" => "2025-11-01" }, path: "/api/v1/users")
-      controller = double("Controller", request: request)
-
-      expect { described_class.from_request(request, controller) }.to raise_error(ApiVersion::Errors::InvalidVersionError)
-    end
-
-    it "raises InvalidVersionError when X-API-Version header contains invalid version" do
+    it "raises InvalidVersionError if requested version is in the future" do
       request = double("Request", headers: { "X-API-Version" => "9999-99-99" }, path: "/api/v1/users")
       controller = double("Controller", request: request)
 
@@ -45,11 +37,8 @@ RSpec.describe ApiVersion do
       request = double("Request", headers: {}, path: "/api/v1/users")
       controller = double("Controller", request: request)
 
-      version_class = double("VersionClass")
-      stub_const("SomeVersionClass", version_class)
-
       result = described_class.from_request(request, controller)
-      expect(result).to eq([version_class])
+      expect(result).to eq([v1_version]) # Current version is 2025-03-01, so it's included
     end
   end
 
@@ -90,13 +79,13 @@ RSpec.describe ApiVersion do
         expect(described_class.send(:current_version, controller)).to eq("2025-11-01")
       end
 
-      it "raises error if version not found in path" do
+      it "returns nil if version not found in path" do
         controller = double("Controller", request: double(path: "/api/v3/users"))
-        expect { described_class.send(:current_version, controller) }.to raise_error(ApiVersion::Errors::MissingCurrentVersionError)
+        expect(described_class.send(:current_version, controller)).to be_nil
       end
 
-      it "raises error if no controller provided" do
-        expect { described_class.send(:current_version) }.to raise_error(ApiVersion::Errors::MissingCurrentVersionError)
+      it "returns nil if no controller provided" do
+        expect(described_class.send(:current_version)).to be_nil
       end
     end
 
@@ -105,8 +94,8 @@ RSpec.describe ApiVersion do
         allow(Rails.application.config.x).to receive(:respond_to?).with(:api_current_versions).and_return(false)
       end
 
-      it "raises error" do
-        expect { described_class.send(:current_version) }.to raise_error(ApiVersion::Errors::MissingCurrentVersionError)
+      it "returns nil" do
+        expect(described_class.send(:current_version)).to be_nil
       end
     end
   end

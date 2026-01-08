@@ -9,4 +9,5 @@ module ApiVersion
   require_relative "api_version/api_transformations/version_files_finder"
   require_relative "api_version/api_transformations/transformers/request_payload"
   require_relative "api_version/api_transformations/transformers/response"
+  require_relative "api_version/test_helpers"
 end
