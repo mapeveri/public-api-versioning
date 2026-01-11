@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe ApiVersion do
   describe ".from_request" do
     let(:v1_version) do
-      double("VersionClass", 
-        namespace_value: "v1", 
+      double("VersionClass",
+        namespace_value: "v1",
         timestamp_value: "2025-03-01",
         is_a?: true
       )

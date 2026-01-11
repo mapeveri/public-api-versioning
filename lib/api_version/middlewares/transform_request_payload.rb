@@ -14,7 +14,7 @@ module ApiVersion
             request.body.rewind
 
             version_files = ApiVersion.from_request(request)
-            
+
             begin
               route_params = Rails.application.routes.recognize_path(request.path, method: request.request_method)
               controller_name = route_params[:controller].split("/").last
