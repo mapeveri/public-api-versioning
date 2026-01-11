@@ -1,6 +1,13 @@
-class <%= @namespace %>::<%= @class_name %> < ApiVersion::Version
+<% if @namespace -%>
+class <%= @namespace.camelize %>::Versions::<%= @class_name %> < ApiVersion::Version
   resource :<%= @resource.pluralize.underscore %>
-  timestamp <%= @timestamp %>
+  timestamp "<%= @timestamp %>"
+  namespace "<%= @namespace %>"
+<% else -%>
+class Versions::<%= @class_name %> < ApiVersion::Version
+  resource :<%= @resource.pluralize.underscore %>
+  timestamp "<%= @timestamp %>"
+<% end -%>
 
   payload do |t|
   end

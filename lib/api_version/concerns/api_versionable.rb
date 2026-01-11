@@ -33,6 +33,8 @@ module ApiVersion::ApiVersionable
     return unless response.media_type == "application/json"
 
     version_files = ApiVersion.from_request(request, self)
+    return if version_files.empty?
+
     body = JSON.parse(response.body, symbolize_names: true)
 
     transformed = ApiVersion::ApiTransformations::Transformation::Response.apply(controller_name, body, version_files)

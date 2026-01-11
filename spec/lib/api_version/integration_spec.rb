@@ -29,6 +29,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
     class Version20250201 < ApiVersion::Version
       timestamp "2025-02-01"
       resource :test
+      namespace "v1"
 
       payload do |p|
         p.add_field :nickname, default: "Anonymous"
@@ -48,6 +49,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
     class Version20250301 < ApiVersion::Version
       timestamp "2025-03-01"
       resource :test
+      namespace "v1"
 
       endpoint_removed :test, :show
     end
@@ -55,6 +57,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
     class Version20250401 < ApiVersion::Version
       timestamp "2025-04-01"
       resource :test
+      namespace "v1"
 
       payload do |p|
         p.remove_field :password
@@ -65,6 +68,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
     class Version20250501 < ApiVersion::Version
       timestamp "2025-05-01"
       resource :test
+      namespace "v1"
 
       payload do |p|
         p.nest :user do |u|
@@ -80,6 +84,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
     class Version20250601 < ApiVersion::Version
       timestamp "2025-06-01"
       resource :test
+      namespace "v1"
 
       response do |r|
         r.nest :nested_data do |n|
@@ -100,13 +105,8 @@ RSpec.describe "ApiVersion Integration", type: :request do
       get "/api/v1/test/:id", to: "api_version_test/test#show"
     end
 
-    allow(Rails.application.config.x).to receive(:version_files).and_return({
-      "2025-02-01" => [ "TestVersions::Version20250201" ],
-      "2025-03-01" => [ "TestVersions::Version20250301" ],
-      "2025-04-01" => [ "TestVersions::Version20250401" ],
-      "2025-05-01" => [ "TestVersions::Version20250501" ],
-      "2025-06-01" => [ "TestVersions::Version20250601" ]
-    })
+    allow(Rails.application.config.x).to receive(:api_current_versions).and_return({ "v1" => "2025-06-01" })
+    allow(ApiVersion).to receive(:load_versions) # Use only versions defined in this spec
   end
 
   after do
@@ -123,7 +123,7 @@ RSpec.describe "ApiVersion Integration", type: :request do
         json_response = JSON.parse(response.body, symbolize_names: true)
 
         expect(json_response[:test][:nickname]).to eq("Anonymous")
-        expect(json_response[:test][:full_name]).to eq("John Doe")
+        expect(json_response[:test][:name]).to eq("John Doe")
         expect(json_response[:test][:email]).to eq("default@example.com")
       end
     end

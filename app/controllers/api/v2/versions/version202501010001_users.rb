@@ -1,6 +1,7 @@
 class Api::V2::Versions::Version202501010001Users < ApiVersion::Version
   resource :users
   timestamp "2025-01-01"
+  namespace "v2"
 
   payload do |t|
   end
