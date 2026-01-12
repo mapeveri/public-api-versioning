@@ -30,18 +30,24 @@ This library supports a wide range of transformations for both **Request Payload
 
 ## Configuration
 
-### 1. Initializer
-Create an initializer (e.g., `config/initializers/api_version.rb`) to configure the current version for each API namespace.
+### 1. Configuration
+Create an initializer (e.g., `config/initializers/api_version.rb`) to configure the library.
 
 ```ruby
 # config/initializers/api_version.rb
 
-# Set the current stable version for each API namespace (v1, v2, etc.)
-Rails.application.config.x.api_current_versions = {
-  "v1" => "2025-11-01", # /api/v1/* uses this as current version
-  "v2" => "2025-11-27"  # /api/v2/* uses this as current version
-}
+ApiVersion.configure do |config|
+  # Set the current stable version for each API namespace (v1, v2, etc.)
+  config.api_current_versions = {
+    "v1" => "2025-11-01", # /api/v1/* uses this as current version
+    "v2" => "2025-11-27"  # /api/v2/* uses this as current version
+  }
+
+  # Optional: Configure where your version files are located
+  # config.version_files_path = "app/controllers/api/v1/versions"
+end
 ```
+
 
 **How it works:**
 - **Automatic Discovery**: The library automatically scans `app/controllers/api/**/versions/*.rb` for transformation classes.

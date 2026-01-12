@@ -5,7 +5,7 @@ module ApiVersion
     requested_version = request.headers["X-API-Version"] || current_version(controller)
     return [] if requested_version.nil?
 
-    version_keys = Rails.application.config.x.respond_to?(:api_current_versions) ? Rails.application.config.x.api_current_versions.keys : []
+    version_keys = ApiVersion.config.api_current_versions.keys
     namespace = detect_api_version_from_path(controller || request, version_keys)
 
     load_versions
@@ -28,7 +28,14 @@ module ApiVersion
 
   def self.load_versions
     return if @versions_loaded
-    Dir.glob(Rails.root.join("app", "controllers", "**", "versions", "*.rb")).each do |file|
+    
+    path = if defined?(Rails)
+             Rails.root.join(ApiVersion.config.version_files_path).to_s
+           else
+             ApiVersion.config.version_files_path
+           end
+
+    Dir.glob(path).each do |file|
       require_dependency file
     end
     @versions_loaded = true
@@ -37,10 +44,7 @@ module ApiVersion
   private
 
     def self.current_version(controller = nil)
-      return nil unless Rails.application.config.x.respond_to?(:api_current_versions) &&
-                        Rails.application.config.x.api_current_versions.is_a?(Hash)
-
-      versions = Rails.application.config.x.api_current_versions
+      versions = ApiVersion.config.api_current_versions
       return nil if versions.empty?
 
       # If only one namespace is configured, use it as default
