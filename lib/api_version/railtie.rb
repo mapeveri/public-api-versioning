@@ -16,5 +16,4 @@ module ApiVersion
       app.middleware.use ApiVersion::Middlewares::TransformRequestPayload
     end
   end
-
 end

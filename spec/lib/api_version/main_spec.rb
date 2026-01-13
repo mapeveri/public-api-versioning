@@ -17,7 +17,7 @@ RSpec.describe ApiVersion do
       allow(Rails.application.config.x).to receive(:respond_to?).with(:api_current_versions, anything).and_return(true)
       allow(Rails.application.config.x).to receive(:respond_to?).with(:api_current_versions).and_return(true)
       allow(ApiVersion).to receive(:load_versions) # Skip file loading in tests
-      
+
       # Simulate Railtie behavior / new configuration source
       ApiVersion.configure do |config|
         config.api_current_versions = api_current_versions

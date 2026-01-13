@@ -28,12 +28,12 @@ module ApiVersion
 
   def self.load_versions
     return if @versions_loaded
-    
+
     path = if defined?(Rails)
-             Rails.root.join(ApiVersion.config.version_files_path).to_s
-           else
-             ApiVersion.config.version_files_path
-           end
+      Rails.root.join(ApiVersion.config.version_files_path).to_s
+    else
+      ApiVersion.config.version_files_path
+    end
 
     Dir.glob(path).each do |file|
       require_dependency file
