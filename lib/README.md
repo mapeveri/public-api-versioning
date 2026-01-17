@@ -44,8 +44,8 @@ ApiVersion.configure do |config|
     "v2" => ["2025-11-27"]                # /api/v2/* uses 2025-11-27 as current
   }
 
-  # Optional: Configure where your version files are located
-  # config.version_files_path = "app/controllers/api/v1/versions"
+  # Optional: Configure where your version files are located (defaults to app/controllers/**/versions/*.rb)
+  # config.version_files_path = "app/controllers/api/**/versions/*.rb"
 end
 ```
 

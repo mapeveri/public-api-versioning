@@ -31,7 +31,6 @@ RSpec.describe ApiVersion do
       let(:v1_dec) { double("Version", namespace_value: "v1", timestamp_value: "2025-12-01") }
 
       before do
-
         allow(ApiVersion::Version).to receive(:all_versions).and_return([v1_june, v1_dec])
         allow(ApiVersion).to receive(:load_versions)
       end
@@ -52,10 +51,8 @@ RSpec.describe ApiVersion do
         # Base code is latest.
         # If I request old version, I need to apply transformations "down"?
         # Or if I request new version...
-        
         # Let's look at main.rb line 25: v.timestamp_value >= requested_version
         # Yes.
-        
         results = ApiVersion.from_request(request, controller)
         expect(results).to include(v1_dec)
         expect(results).not_to include(v1_june)
@@ -64,12 +61,12 @@ RSpec.describe ApiVersion do
       it "raises error if requested version is newer than latest supported" do
          request = double("Request", headers: { "X-API-Version" => "2026-01-01" }, path: "/api/v1/users")
          controller = double("Controller", request: request)
-         
+
          # Latest is 2025-12-01
          expect { ApiVersion.from_request(request, controller) }.to raise_error(ApiVersion::Errors::InvalidVersionError)
       end
     end
-    
+
     describe "Fallback to api_current_versions" do
       before do
         allow(ApiVersion.config).to receive(:api_supported_versions).and_return(nil)
