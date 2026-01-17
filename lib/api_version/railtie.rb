@@ -5,6 +5,10 @@ module ApiVersion
         if app.config.respond_to?(:x) && app.config.x.respond_to?(:api_current_versions)
           config.api_current_versions = app.config.x.api_current_versions
         end
+
+        if app.config.respond_to?(:x) && app.config.x.respond_to?(:api_supported_versions)
+          config.api_supported_versions = app.config.x.api_supported_versions
+        end
         # Use default path or sync if previously configured via some other means (unlikely but safe)
         if app.config.respond_to?(:x) && app.config.x.respond_to?(:api_version_files_path)
            config.version_files_path = app.config.x.api_version_files_path

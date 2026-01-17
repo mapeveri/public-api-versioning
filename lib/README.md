@@ -37,10 +37,11 @@ Create an initializer (e.g., `config/initializers/api_version.rb`) to configure 
 # config/initializers/api_version.rb
 
 ApiVersion.configure do |config|
-  # Set the current stable version for each API namespace (v1, v2, etc.)
-  config.api_current_versions = {
-    "v1" => "2025-11-01", # /api/v1/* uses this as current version
-    "v2" => "2025-11-27"  # /api/v2/* uses this as current version
+  # Set the supported versions for each API namespace (v1, v2, etc.)
+  # The latest version in the list is considered the "current" version for that namespace.
+  config.api_supported_versions = {
+    "v1" => ["2025-01-01", "2025-11-01"], # /api/v1/* uses 2025-11-01 as current
+    "v2" => ["2025-11-27"]                # /api/v2/* uses 2025-11-27 as current
   }
 
   # Optional: Configure where your version files are located

@@ -5,8 +5,9 @@ module ApiVersion
     requested_version = request.headers["X-API-Version"] || current_version(controller)
     return [] if requested_version.nil?
 
-    version_keys = ApiVersion.config.api_current_versions.keys
+    version_keys = resolve_versions.keys
     namespace = detect_api_version_from_path(controller || request, version_keys)
+
 
     load_versions
 
@@ -44,18 +45,41 @@ module ApiVersion
   private
 
     def self.current_version(controller = nil)
-      versions = ApiVersion.config.api_current_versions
+      versions = resolve_versions
       return nil if versions.empty?
 
       # If only one namespace is configured, use it as default
-      return versions.values.first if versions.size == 1
+      return versions.values.first.max if versions.size == 1
 
       if controller
         namespace = detect_api_version_from_path(controller, versions.keys)
-        return versions[namespace] if namespace && versions[namespace]
+        return versions[namespace].max if namespace && versions[namespace]
       end
 
       nil
+    end
+
+    def self.resolve_versions
+      versions = {}
+      config = ApiVersion.config
+
+      # Old config: Single version per namespace
+      config.api_current_versions.each do |namespace, version|
+        versions[namespace] ||= []
+        versions[namespace] << version
+      end
+
+      # New config: Multiple versions per namespace
+      if config.api_supported_versions
+        config.api_supported_versions.each do |namespace, supported_versions|
+          versions[namespace] ||= []
+          list = supported_versions.is_a?(Array) ? supported_versions : [supported_versions]
+          versions[namespace].concat(list)
+        end
+      end
+
+      # Deduplicate and sort (so last is max)
+      versions.transform_values { |v| v.uniq.sort }
     end
 
     def self.detect_api_version_from_path(source, version_keys)

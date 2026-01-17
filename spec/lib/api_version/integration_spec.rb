@@ -105,7 +105,10 @@ RSpec.describe "ApiVersion Integration", type: :request do
       get "/api/v1/test/:id", to: "api_version_test/test#show"
     end
 
-    allow(Rails.application.config.x).to receive(:api_current_versions).and_return({ "v1" => "2025-06-01" })
+    ApiVersion.configure do |config|
+      config.api_current_versions = { "v1" => "2025-06-01" }
+      config.api_supported_versions = {}
+    end
     allow(ApiVersion).to receive(:load_versions) # Use only versions defined in this spec
   end
 
