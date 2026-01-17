@@ -30,10 +30,13 @@ module ApiVersion
   def self.load_versions
     return if @versions_loaded
 
-    path = if defined?(Rails)
-      Rails.root.join(ApiVersion.config.version_files_path).to_s
+    path_string = ApiVersion.config.version_files_path
+    return unless path_string.is_a?(String)
+
+    path = if defined?(Rails) && Rails.respond_to?(:root) && Rails.root
+      Rails.root.join(path_string).to_s
     else
-      ApiVersion.config.version_files_path
+      path_string
     end
 
     Dir.glob(path).each do |file|
